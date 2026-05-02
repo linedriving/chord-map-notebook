@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="次に弾くコードを、地図・押さえ方・進行メモで探す音楽アイディアノート。" />
+    <meta name="theme-color" content="#0d0f10" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Chord Map" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Chord Map Notebook</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar" aria-label="コード地図の設定">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">CM</span>
+          <div>
+            <h1>Chord Map Notebook</h1>
+            <p>次に弾くコードを、地図とメモで探す。</p>
+          </div>
+        </div>
+
+        <div class="controls">
+          <label class="control">
+            <span>キー</span>
+            <select id="keySelect"></select>
+          </label>
+          <fieldset class="segmented" aria-label="響きの種類">
+            <legend>響き</legend>
+            <button type="button" class="segment is-active" data-mode="major">メジャー系</button>
+            <button type="button" class="segment" data-mode="minor">マイナー系</button>
+          </fieldset>
+          <fieldset class="segmented adventure-control" aria-label="候補の冒険度">
+            <legend>冒険度</legend>
+            <button type="button" class="adventure-segment" data-adventure="classic">定番</button>
+            <button type="button" class="adventure-segment is-active" data-adventure="deep">J-POP深め</button>
+            <button type="button" class="adventure-segment" data-adventure="wild">AI実験</button>
+            <button type="button" class="adventure-segment" data-adventure="jazz">Jazz/Funk</button>
+          </fieldset>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <section class="map-panel" aria-label="コード地図">
+          <div class="map-toolbar">
+            <div class="current-readout">
+              <span>今のコード</span>
+              <strong id="currentChord">C</strong>
+              <button type="button" id="previousChordButton" class="back-button" disabled>← 前のコード</button>
+            </div>
+            <div class="map-actions">
+              <button type="button" id="addCurrentButton" class="ghost-button">進行に追加</button>
+              <button type="button" id="clearPathButton" class="ghost-button">進行を空にする</button>
+            </div>
+          </div>
+
+          <div class="map-stage" id="mapStage">
+            <svg id="chordMap" viewBox="-430 -320 860 640" role="img" aria-labelledby="mapTitle mapDesc">
+              <title id="mapTitle">コード進行の地図</title>
+              <desc id="mapDesc">内側ほど定番、外側ほど冒険的。左は広がりや借用、右は緊張や戻る力、上は明るさや浮遊、下は暗さや内省を表します。</desc>
+              <g id="orbitLayer"></g>
+              <g id="edgeLayer"></g>
+              <g id="nodeLayer"></g>
+            </svg>
+            <div id="mapNotes" class="map-notes" aria-label="地図メモ"></div>
+          </div>
+
+          <div class="legend" aria-label="色の見方">
+            <span><i class="dot natural"></i>自然</span>
+            <span><i class="dot lift"></i>明るい</span>
+            <span><i class="dot wistful"></i>切ない</span>
+            <span><i class="dot tension"></i>緊張</span>
+            <span><i class="dot blues"></i>ブルース</span>
+            <span><i class="dot surprise"></i>意外</span>
+            <span><i class="dot dream"></i>浮遊</span>
+            <span><i class="dot chromatic"></i>半音</span>
+            <span><i class="dot groove"></i>グルーヴ</span>
+            <span><i class="dot altered"></i>濁り</span>
+          </div>
+
+          <section class="progression-area" aria-label="コード進行メモ">
+            <div class="progression-head">
+              <h2>進行メモ</h2>
+              <div class="progression-actions">
+                <button type="button" id="downloadMidiButton" class="ghost-button desktop-only" disabled>MIDI</button>
+                <button type="button" id="saveIdeaButton" class="primary-button">保存</button>
+              </div>
+            </div>
+            <div id="progressionStrip" class="progression-strip" aria-live="polite"></div>
+            <textarea id="ideaMemo" rows="3" placeholder="例: サビ前に使う。少し切ないけど前に進む感じ。"></textarea>
+          </section>
+        </section>
+
+        <aside class="side-panel" aria-label="選んだコードの詳細">
+          <section class="detail-section selected-card">
+            <div class="section-title">
+              <h2 id="selectedTitle">C</h2>
+              <span id="selectedFunction">家にいる感じ</span>
+            </div>
+            <p id="selectedDescription">安定していて、ここからいろいろな方向へ進めます。</p>
+          </section>
+
+          <section class="detail-section detail-tabs-section">
+            <div class="detail-tabs" role="tablist" aria-label="コード情報を切り替える">
+              <button type="button" class="detail-tab is-active" data-detail-tab="suggestions" role="tab" aria-selected="true">次に試す</button>
+              <button type="button" class="detail-tab" data-detail-tab="voicings" role="tab" aria-selected="false">
+                押さえ方 <span id="voicingCount" class="tab-count">3種類</span>
+              </button>
+            </div>
+            <div class="detail-panel is-active" data-detail-panel="suggestions" role="tabpanel">
+              <p class="panel-hint">行き先の候補</p>
+              <div id="suggestions" class="suggestions"></div>
+            </div>
+            <div class="detail-panel" data-detail-panel="voicings" role="tabpanel" hidden>
+              <div class="instrument-tabs" role="tablist" aria-label="楽器を選ぶ">
+                <button type="button" class="instrument-tab is-active" data-instrument="guitar">ギター</button>
+                <button type="button" class="instrument-tab" data-instrument="keyboard">鍵盤</button>
+                <button type="button" class="instrument-tab" data-instrument="bass">ベース</button>
+              </div>
+              <div id="voicingTabs" class="voicing-tabs" role="tablist" aria-label="押さえ方の種類"></div>
+              <div id="chordDiagram" class="chord-diagram" aria-live="polite"></div>
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <div class="section-title">
+              <h2>地図メモ</h2>
+              <span>貼って動かせる</span>
+            </div>
+            <div class="note-input-row">
+              <input id="mapNoteInput" type="text" placeholder="例: ここはブルースっぽい" />
+              <button type="button" id="addMapNoteButton" class="icon-button" aria-label="地図にメモを追加">+</button>
+            </div>
+          </section>
+
+          <section class="detail-section saved-section">
+            <div class="section-title">
+              <h2>保存したアイディア</h2>
+              <button type="button" id="clearIdeasButton" class="text-button">整理</button>
+            </div>
+            <div id="savedIdeas" class="saved-ideas"></div>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
