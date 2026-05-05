@@ -186,7 +186,6 @@ input:focus {
 }
 
 .segment,
-.adventure-segment,
 .ghost-button,
 .primary-button,
 .text-button,
@@ -201,17 +200,114 @@ input:focus {
   line-height: 1;
 }
 
-.segment,
-.adventure-segment {
+.segment {
   padding: 0 14px;
   background: transparent;
 }
 
-.segment.is-active,
-.adventure-segment.is-active {
+.segment.is-active {
   background: var(--green);
   color: #071008;
   font-weight: 700;
+}
+
+.complexity-control {
+  display: grid;
+  gap: 7px;
+  min-width: 280px;
+  margin: 0;
+  padding: 8px 10px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.complexity-control legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.complexity-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.complexity-head span:last-child {
+  text-align: right;
+}
+
+.complexity-head strong {
+  min-width: 58px;
+  color: var(--green);
+  font-size: 0.84rem;
+  text-align: center;
+}
+
+.complexity-control input[type="range"] {
+  --complexity: 33.333%;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.complexity-control input[type="range"]::-webkit-slider-runnable-track {
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--green) 0 var(--complexity), rgba(255, 255, 255, 0.14) var(--complexity) 100%);
+}
+
+.complexity-control input[type="range"]::-moz-range-track {
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--green) 0 var(--complexity), rgba(255, 255, 255, 0.14) var(--complexity) 100%);
+}
+
+.complexity-control input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -6.5px;
+  border: 2px solid #071008;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 1px rgba(130, 221, 85, 0.45), 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.complexity-control input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #071008;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 1px rgba(130, 221, 85, 0.45), 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.complexity-scale {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.complexity-scale span {
+  text-align: center;
+  white-space: nowrap;
 }
 
 .workspace {
@@ -946,7 +1042,7 @@ textarea {
 
 .diagram-wrap {
   display: grid;
-  grid-template-columns: 132px 1fr;
+  grid-template-columns: 146px 1fr;
   gap: 14px;
   align-items: center;
 }
@@ -961,7 +1057,7 @@ textarea {
 }
 
 .fret-svg {
-  width: 132px;
+  width: 146px;
   height: 174px;
 }
 
@@ -1231,12 +1327,12 @@ textarea {
   .control,
   .controls select,
   .segmented,
+  .complexity-control,
   .map-actions button {
     width: 100%;
   }
 
-  .segment,
-  .adventure-segment {
+  .segment {
     flex: 1;
     padding: 0 8px;
   }

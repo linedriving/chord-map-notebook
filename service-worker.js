@@ -1,4 +1,4 @@
-const CACHE_NAME = "chord-map-notebook-pwa-v1";
+const CACHE_NAME = "chord-map-notebook-pwa-v3";
 
 const APP_SHELL = [
   "./",

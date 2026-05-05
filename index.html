@@ -36,12 +36,20 @@
             <button type="button" class="segment is-active" data-mode="major">メジャー系</button>
             <button type="button" class="segment" data-mode="minor">マイナー系</button>
           </fieldset>
-          <fieldset class="segmented adventure-control" aria-label="候補の冒険度">
-            <legend>冒険度</legend>
-            <button type="button" class="adventure-segment" data-adventure="classic">定番</button>
-            <button type="button" class="adventure-segment is-active" data-adventure="deep">J-POP深め</button>
-            <button type="button" class="adventure-segment" data-adventure="wild">AI実験</button>
-            <button type="button" class="adventure-segment" data-adventure="jazz">Jazz/Funk</button>
+          <fieldset class="complexity-control" aria-label="候補の複雑さ">
+            <legend>複雑さ</legend>
+            <div class="complexity-head">
+              <span>シンプル</span>
+              <strong id="complexityLabel">J-POP</strong>
+              <span>複雑</span>
+            </div>
+            <input id="complexitySlider" type="range" min="0" max="3" step="1" value="1" aria-label="候補の複雑さ" />
+            <div class="complexity-scale" aria-hidden="true">
+              <span>定番</span>
+              <span>J-POP</span>
+              <span>J/F</span>
+              <span>AI実験</span>
+            </div>
           </fieldset>
         </div>
       </header>

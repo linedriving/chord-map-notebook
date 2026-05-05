@@ -39,10 +39,12 @@ const MOODS = {
 
 const ADVENTURES = {
   classic: { label: "定番", levels: [1], visualLevel: 1 },
-  deep: { label: "J-POP深め", levels: [1, 2], visualLevel: 2 },
-  wild: { label: "AI実験", levels: [1, 2, 3], visualLevel: 3 },
-  jazz: { label: "Jazz/Funk", levels: [1, 4], visualLevel: 3 },
+  deep: { label: "J-POP", levels: [1, 2], visualLevel: 2 },
+  jazz: { label: "J/F", levels: [1, 2, 4], visualLevel: 3 },
+  wild: { label: "AI実験", levels: [1, 2, 3, 4], visualLevel: 4 },
 };
+
+const COMPLEXITY_ORDER = ["classic", "deep", "jazz", "wild"];
 
 const QUALITY_LABELS = {
   maj: "",
@@ -58,6 +60,7 @@ const QUALITY_LABELS = {
   dim7: "dim7",
   aug: "aug",
   mM7: "mM7",
+  m6: "m6",
   "6": "6",
   maj9: "maj9",
   m9: "m9",
@@ -85,6 +88,7 @@ const QUALITY_DESCRIPTIONS = {
   dim7: "半音で動かしたくなる、映画的な通過コード。",
   aug: "不思議に膨らむ響き。次の景色を急に変えられます。",
   mM7: "暗いのに艶がある、少し危うい響き。",
+  m6: "マイナーの暗さに、少し古くて洒落た余韻が残る響き。",
   "6": "軽く懐かしい、終わりにも途中にも置ける響き。",
   maj9: "maj7よりさらに空気が広く、夜景のような透明感があります。",
   m9: "マイナーの切なさに、都会的な余白が足されます。",
@@ -138,6 +142,20 @@ const MAPS = {
       { id: "bVI7", offset: 8, quality: "7", x: -232, y: 256, role: "burn", feeling: "外から燃える", description: "遠い場所から強引に次へ押す、AI実験寄りの熱いコードです。", level: 3, weight: 4 },
       { id: "sharpVaug", offset: 8, quality: "aug", x: 316, y: 154, role: "warp", feeling: "景色が曲がる", description: "ベースやトップノートを半音で押し上げる、不思議な曲がり角です。", level: 3, weight: 4 },
       { id: "tritoneV", offset: 1, quality: "7", x: -376, y: -164, role: "sub", feeling: "裏から帰る", description: "V7の代わりに使うと、半音で家へ戻るような濃い戻り方になります。", level: 3, weight: 4 },
+      { id: "ii11", offset: 2, quality: "m11", x: -132, y: 166, role: "flow", feeling: "柔らかい橋", description: "iiを広くして、歌のすき間を残したまま次へ進めます。", level: 2, weight: 3 },
+      { id: "V9", offset: 7, quality: "9", x: 344, y: -84, role: "spark", feeling: "跳ねる緊張", description: "普通のV7より軽く跳ねて、ポップスにもファンクにも行けます。", level: 2, weight: 3 },
+      { id: "III7b9", offset: 4, quality: "dom7b9", x: 156, y: 198, role: "sting", feeling: "刺さって切ない", description: "viへ行く前に強い影を作る、歌もの向きの濃い曲がり角です。", level: 2, weight: 4 },
+      { id: "VI7b9", offset: 9, quality: "dom7b9", x: 186, y: 304, role: "chain", feeling: "連鎖が濃い", description: "iiへ向かうセカンダリードミナントを、さらに色濃くします。", level: 2, weight: 4 },
+      { id: "ivm6", offset: 5, quality: "m6", x: -260, y: 150, role: "borrow", feeling: "懐かしく沈む", description: "明るい曲の中で、映画のエンディングのような切なさを出せます。", level: 2, weight: 3 },
+      { id: "bVIadd9", offset: 8, quality: "add9", x: -374, y: 236, role: "borrow", feeling: "遠い余白", description: "借用コードの重さを、add9で現代的に軽くできます。", level: 2, weight: 4 },
+      { id: "bVIIadd9", offset: 10, quality: "add9", x: -402, y: 118, role: "back", feeling: "外から明るく戻る", description: "ロックのbVIIに、J-POPらしい余韻を足します。", level: 2, weight: 3 },
+      { id: "viM7", offset: 9, quality: "mM7", x: 304, y: 112, role: "noir", feeling: "切なさが艶めく", description: "viをただ暗くせず、少し危うい透明感に変えます。", level: 3, weight: 4 },
+      { id: "bIII7", offset: 3, quality: "7", x: -214, y: 314, role: "burn", feeling: "外側が燃える", description: "借用のbIIIをドミナント化して、遠い場所へ強く押します。", level: 3, weight: 4 },
+      { id: "sharpIVmaj7", offset: 6, quality: "maj7", x: 350, y: 24, role: "alien", feeling: "宙に浮く", description: "半音上の明るさを置き、キーの重力を一瞬だけ消します。", level: 3, weight: 4 },
+      { id: "bV7alt", offset: 6, quality: "dom7alt", x: 392, y: 78, role: "alt", feeling: "遠く濁る", description: "ほとんど別の星から来るドミナント。短く置くと強烈です。", level: 3, weight: 4 },
+      { id: "bVIImaj7", offset: 10, quality: "maj7", x: -408, y: 20, role: "back", feeling: "裏口が透明", description: "bVIIをロックではなく、浮遊感のある借用コードとして使えます。", level: 3, weight: 4 },
+      { id: "IIImM7", offset: 4, quality: "mM7", x: 302, y: 246, role: "noir", feeling: "内側の毒", description: "iiiの内省に、少し危険なトップノートを混ぜます。", level: 3, weight: 4 },
+      { id: "bVI9", offset: 8, quality: "9", x: -290, y: 316, role: "burn", feeling: "外で跳ねる", description: "借用のbVIを、ブルージーで踊れる外側に変えます。", level: 3, weight: 4 },
       { id: "Imaj9", offset: 0, quality: "maj9", x: -42, y: -292, role: "silk", feeling: "夜景の家", description: "家のコードを夜景みたいに広げる、Jazz/Funk寄りの着地点です。", level: 4, weight: 4 },
       { id: "ii9", offset: 2, quality: "m9", x: -124, y: 126, role: "flow", feeling: "滑る準備", description: "普通のiiより空気があり、次のドミナントへ滑りやすい場所です。", level: 4, weight: 3 },
       { id: "iii9", offset: 4, quality: "m9", x: 326, y: 208, role: "inside", feeling: "奥へ潜る", description: "メロウな内側の場所。R&B寄りのコードループにも向きます。", level: 4, weight: 3 },
@@ -147,6 +165,14 @@ const MAPS = {
       { id: "bII13", offset: 1, quality: "13", x: -394, y: -246, role: "sub", feeling: "裏口のファンク", description: "半音上から戻る、濃くて踊れる裏口です。", level: 4, weight: 4 },
       { id: "VI9", offset: 9, quality: "9", x: 228, y: 292, role: "chain", feeling: "連鎖する", description: "次のiiへ進むための、明るく跳ねる寄り道です。", level: 4, weight: 3 },
       { id: "sus13", offset: 7, quality: "sus13", x: 308, y: -288, role: "hold", feeling: "踊って待つ", description: "答えを出さずにグルーヴを保つ、ファンク向きの保留コードです。", level: 4, weight: 4 },
+      { id: "I13", offset: 0, quality: "13", x: 54, y: -304, role: "funk", feeling: "家が踊る", description: "Iをあえてドミナント風にして、ファンクのループ感を作ります。", level: 4, weight: 4 },
+      { id: "ii11j", offset: 2, quality: "m11", x: -176, y: 190, role: "flow", feeling: "太い橋", description: "iiを広く沈ませ、カッティングでも鍵盤でも使いやすくします。", level: 4, weight: 4 },
+      { id: "IV13", offset: 5, quality: "13", x: -388, y: -6, role: "funk", feeling: "広がって跳ねる", description: "IVをファンク寄りに濁らせ、停滞せずに踊らせます。", level: 4, weight: 4 },
+      { id: "bVII13", offset: 10, quality: "13", x: -410, y: 92, role: "back", feeling: "裏口が踊る", description: "バックドア感とファンクの跳ねを同時に作れるコードです。", level: 4, weight: 4 },
+      { id: "Vm9", offset: 7, quality: "m9", x: 366, y: 238, role: "back", feeling: "夜の裏口", description: "Iへ戻る前に、平行世界のvを置くバックドアの入口です。", level: 4, weight: 4 },
+      { id: "backdoor9", offset: 10, quality: "9", x: 402, y: 116, role: "back", feeling: "濃い裏口", description: "普通のVではなく、bVII9から戻る洒落た帰り道です。", level: 4, weight: 4 },
+      { id: "tritoneAlt", offset: 1, quality: "dom7alt", x: -410, y: -192, role: "alt", feeling: "裏口が濁る", description: "裏コードにaltの濁りを足し、半音解決の快感を強くします。", level: 4, weight: 4 },
+      { id: "ivm9j", offset: 5, quality: "m9", x: -352, y: 150, role: "borrow", feeling: "深い借用", description: "IVを一瞬だけマイナー化し、R&B寄りの陰影を作ります。", level: 4, weight: 4 },
     ],
     edges: [
       ["I", "V", "natural", "王道で明るく進みます。"],
@@ -155,6 +181,8 @@ const MAPS = {
       ["I", "IV", "lift", "一気に景色が広がります。"],
       ["I", "ii", "natural", "次の流れを作る準備になります。"],
       ["I", "bVII", "blues", "ロックやブルースっぽい外の色が入ります。"],
+      ["I", "iii", "wistful", "いきなり内側へ潜る、歌もののAメロで使いやすい動きです。"],
+      ["IV", "vi", "wistful", "広がったあとに切ない場所へ落とす、現代ポップスで強い循環です。"],
       ["V", "I", "natural", "すっきり家へ戻ります。"],
       ["V", "vi", "surprise", "戻ると思わせて切ない方向へ逃がします。"],
       ["V7", "I", "natural", "強く戻る、いちばん分かりやすい解決です。"],
@@ -167,8 +195,10 @@ const MAPS = {
       ["ii", "V", "natural", "自然に前へ進む定番の動きです。"],
       ["ii", "I", "surprise", "少しだけ肩透かしで落ち着けます。"],
       ["vi", "IV", "wistful", "切なさから明るさへ開きます。"],
+      ["vi", "V", "lift", "切なさをすぐ前向きに戻す、ポップスで強い動きです。"],
       ["vi", "ii", "natural", "もう一歩進む準備になります。"],
       ["vi", "III7", "tension", "切ない場所をさらに強く引っ張ります。"],
+      ["iii", "ii", "natural", "内側に潜ったあと、少しずつ戻る準備に入れます。"],
       ["III7", "vi", "tension", "viへ強く入りたいときに効きます。"],
       ["VI7", "ii", "tension", "次の準備コードへ勢いよくつながります。"],
       ["II7", "V7", "tension", "戻るための力を一段強くします。"],
@@ -235,6 +265,38 @@ const MAPS = {
       ["sus13", "V13", "groove", "保留したまま、さらにファンク寄りに進めます。", 4],
       ["bII13", "Imaj9", "chromatic", "半音上の濃い裏口から、夜景の家へ戻ります。", 4],
       ["IVmaj9", "bII13", "altered", "広いIVから遠い裏口へ飛び、強烈なリハモ感を作れます。", 4],
+      ["IVmaj7", "V9", "lift", "王道進行のVを9thにして、サビ前の光を少し強くします。", 2],
+      ["V9", "iii7", "wistful", "明るく戻ると思わせて、内側の切なさへ着地します。", 2],
+      ["iii7", "III7b9", "tension", "iiiからviへ向かう前に、刺さる導火線を置きます。", 2],
+      ["III7b9", "vi7", "tension", "濃い緊張がviへ落ちる、J-POPの泣きに近い動きです。", 2],
+      ["vi7", "VI7b9", "tension", "切ない場所を次のiiへ押し出す、循環の加速装置です。", 2],
+      ["VI7b9", "ii7", "tension", "iiへ強く入るので、進行が一段深く聞こえます。", 2],
+      ["ii11", "V9", "groove", "柔らかいiiから、跳ねるVへ。歌の余白を残したまま進めます。", 2],
+      ["ivm", "ivm6", "wistful", "普通のサブドミナントマイナーを、少し古く美しい色に変えます。", 2],
+      ["ivm6", "Imaj7", "wistful", "懐かしい沈みから透明な家へ戻る、余韻の強い解決です。", 2],
+      ["bVIadd9", "bVIIadd9", "lift", "借用コードを重くしすぎず、外側から大きく持ち上げます。", 2],
+      ["bVIIadd9", "Iadd9", "lift", "外の明るさから、空気のある家へ戻ります。", 2],
+      ["Imaj7", "viM7", "chromatic", "透明な家から、危うい切なさへ一歩ずらします。", 3],
+      ["viM7", "sharpIVmaj7", "surprise", "切ない場所から重力のない明るさへ飛ぶ、AI実験らしい展開です。", 3],
+      ["sharpIVmaj7", "bV7alt", "altered", "宙に浮いたコードを、遠い濁りへ変換します。", 3],
+      ["bV7alt", "IVmaj7", "chromatic", "遠く濁った場所から、半音で広いIVへ着地します。", 3],
+      ["Iadd9", "bVIImaj7", "surprise", "明るい家から、透明な裏口へ一気に飛びます。", 3],
+      ["bVIImaj7", "IVmaj7", "dream", "裏口の透明感を、自然な広がりへ戻します。", 3],
+      ["IIImM7", "bIII7", "altered", "内側の毒を、外側へ燃やす実験的な曲がり角です。", 3],
+      ["bIII7", "bVI9", "altered", "外側のドミナントをさらに外へ連鎖させます。", 3],
+      ["bVI9", "tritoneV", "chromatic", "踊れる外側から、半音解決の裏口へ入ります。", 3],
+      ["Imaj9", "I13", "groove", "夜景の家を、あえて踊れる家に変えます。", 4],
+      ["I13", "IV13", "groove", "家のファンク感を、広がるファンクへ横移動します。", 4],
+      ["IV13", "bVII13", "groove", "IVからbVIIへ、ブルースとファンクの中間を進みます。", 4],
+      ["bVII13", "Imaj9", "groove", "踊る裏口から、透明な家へ戻ります。", 4],
+      ["Imaj9", "Vm9", "wistful", "家から夜のvへ落として、バックドアの入口を作ります。", 4],
+      ["Vm9", "backdoor9", "groove", "m9の影からbVII9へ進み、裏口の戻りを準備します。", 4],
+      ["backdoor9", "Imaj9", "chromatic", "普通のVを使わず、洒落た半音感で家へ戻ります。", 4],
+      ["ii11j", "V13", "groove", "広いiiから、短く切れる13thへ。J/Fの中心的な流れです。", 4],
+      ["V13", "tritoneAlt", "altered", "踊れるVを裏コードの濁りに変えて、戻り方を深くします。", 4],
+      ["tritoneAlt", "Imaj9", "altered", "altの裏口から半音で戻り、家の透明感を強調します。", 4],
+      ["IVmaj9", "ivm9j", "wistful", "明るいIVをm9へ陰らせる、R&B寄りのリハモです。", 4],
+      ["ivm9j", "bVII13", "groove", "深い借用から、踊る裏口へつなぎます。", 4],
     ],
   },
   minor: {
@@ -272,6 +334,15 @@ const MAPS = {
       { id: "bVmaj7", offset: 6, quality: "maj7", x: -360, y: -34, role: "alien", feeling: "遠い星", description: "ほとんど別世界のコード。短く置くと強烈な印象になります。", level: 3, weight: 4 },
       { id: "sharpIVdim7m", offset: 6, quality: "dim7", x: 336, y: -30, role: "slide", feeling: "影が滑る", description: "半音移動で次の場所へ吸い込ませる、実験的な通過点です。", level: 3, weight: 3 },
       { id: "bVI13m", offset: 8, quality: "13", x: -300, y: 254, role: "burn", feeling: "暗く跳ねる", description: "マイナーの外側で踊る、濃くて少し危ないコードです。", level: 3, weight: 4 },
+      { id: "iv6m", offset: 5, quality: "m6", x: -292, y: -124, role: "old", feeling: "古く美しい影", description: "ivを少し映画的にして、戻り方に渋い余韻を足します。", level: 2, weight: 3 },
+      { id: "V9m", offset: 7, quality: "9", x: 292, y: -168, role: "spark", feeling: "跳ねる戻り", description: "V7より少し軽く、暗いキーでもグルーヴを残して戻れます。", level: 2, weight: 3 },
+      { id: "VI6_9m", offset: 8, quality: "sixNine", x: -380, y: 116, role: "light", feeling: "光が浮く", description: "VIの明るさを終わらせすぎず、ループ向きにします。", level: 2, weight: 3 },
+      { id: "bVIIadd9m", offset: 10, quality: "add9", x: 356, y: 88, role: "rise", feeling: "上昇に余白", description: "VIIの勢いを少し透明にして、現代的な上昇感にします。", level: 2, weight: 3 },
+      { id: "IIIadd9m", offset: 3, quality: "add9", x: 48, y: 278, role: "open", feeling: "開けて残る", description: "IIIの明るさに余韻を足し、サビの入口を作りやすくします。", level: 2, weight: 3 },
+      { id: "iM9m", offset: 0, quality: "m9", x: -92, y: -300, role: "night", feeling: "暗い空気", description: "iを広げ、ただ暗いだけではない余白を作ります。", level: 2, weight: 3 },
+      { id: "bIII7m", offset: 3, quality: "7", x: 170, y: 284, role: "burn", feeling: "光が荒れる", description: "IIIをドミナント化し、VIへ強く落とすための熱を作ります。", level: 3, weight: 4 },
+      { id: "bV7altm", offset: 6, quality: "dom7alt", x: -398, y: 28, role: "alt", feeling: "遠く濁る", description: "暗いキーの重力を一瞬切り、別方向から戻るための強い外側です。", level: 3, weight: 4 },
+      { id: "VII7altm", offset: 10, quality: "dom7alt", x: 388, y: 190, role: "alt", feeling: "上昇が歪む", description: "VIIの上昇感を濁らせ、予想外の明るさへ押し出します。", level: 3, weight: 4 },
       { id: "i11", offset: 0, quality: "m11", x: -34, y: -300, role: "space", feeling: "暗い空間", description: "マイナーの中心を広い空間に変える、Neo Soul寄りの家です。", level: 4, weight: 4 },
       { id: "iv11", offset: 5, quality: "m11", x: -354, y: -106, role: "deep", feeling: "沈むグルーヴ", description: "暗く広いサブドミナント。カッティングにも合います。", level: 4, weight: 4 },
       { id: "V7altm", offset: 7, quality: "dom7alt", x: 372, y: -116, role: "alt", feeling: "濁って帰る", description: "戻る直前を濁らせ、iの暗さを強く美しくします。", level: 4, weight: 4 },
@@ -280,6 +351,10 @@ const MAPS = {
       { id: "IIImaj9m", offset: 3, quality: "maj9", x: 92, y: 220, role: "open", feeling: "開けた夜", description: "マイナーから見える明るい場所を、より深く広げます。", level: 4, weight: 4 },
       { id: "VImaj9m", offset: 8, quality: "maj9", x: -382, y: 196, role: "light", feeling: "遠い光", description: "VImaj7よりさらに空気があり、メロウな展開に向きます。", level: 4, weight: 4 },
       { id: "VII13m", offset: 10, quality: "13", x: 328, y: 150, role: "rise", feeling: "跳ねて上がる", description: "上昇感をファンク寄りに変えるコードです。", level: 4, weight: 3 },
+      { id: "i13susm", offset: 0, quality: "sus13", x: 66, y: -304, role: "hold", feeling: "暗く踊って待つ", description: "iの3度を保留して、暗いままファンク寄りに浮かせます。", level: 4, weight: 4 },
+      { id: "iv13susm", offset: 5, quality: "sus13", x: -404, y: -70, role: "funk", feeling: "沈んで跳ねる", description: "ivを答えの出ないファンクコードにして、停滞をグルーヴに変えます。", level: 4, weight: 4 },
+      { id: "bVII9m", offset: 10, quality: "9", x: 404, y: 96, role: "back", feeling: "荒い裏口", description: "マイナーのVIIを9thにして、ロックとファンクの中間へ寄せます。", level: 4, weight: 4 },
+      { id: "tritoneAltm", offset: 1, quality: "dom7alt", x: -402, y: -198, role: "alt", feeling: "濁る裏口", description: "半音上の裏コードを濁らせ、iへの戻りを深くします。", level: 4, weight: 4 },
     ],
     edges: [
       ["i", "iv", "natural", "暗さを保ちながら深く進みます。"],
@@ -355,6 +430,28 @@ const MAPS = {
       ["IIImaj9m", "iv11", "wistful", "開けた夜から、深いグルーヴへ戻ります。", 4],
       ["bII13m", "i11", "chromatic", "半音上の濃い裏口から、広い暗い家へ戻ります。", 4],
       ["iv11", "bII13m", "altered", "深いivから、遠い裏口へ飛ぶ強いリハモです。", 4],
+      ["iv", "iv6m", "wistful", "普通のivにm6の余韻を足し、映画的に戻る準備をします。", 2],
+      ["iv6m", "iM7", "chromatic", "古い影から暗い艶へ戻る、静かなリハモです。", 2],
+      ["V7", "V9m", "groove", "強い戻りを少し跳ねさせ、暗い曲でも硬くなりすぎません。", 2],
+      ["V9m", "i9", "tension", "跳ねる緊張から、広い暗い家へ戻ります。", 2],
+      ["VI", "VI6_9m", "dream", "VIの光を終わらせすぎず、ループで使いやすくします。", 2],
+      ["VI6_9m", "bVIIadd9m", "lift", "浮いた光から、上昇の余白へつなぎます。", 2],
+      ["bVIIadd9m", "IIIadd9m", "lift", "透明な上昇から、開けた明るさへ着地します。", 2],
+      ["IIIadd9m", "VImaj7", "wistful", "開けた場所から、遠い光へもう一段深く戻します。", 2],
+      ["i", "iM9m", "dream", "暗い家を広げて、歌の前に空気を作ります。", 2],
+      ["iM9m", "VI6_9m", "wistful", "広い暗さから、浮いた光へ開きます。", 2],
+      ["IIImaj7", "bIII7m", "altered", "明るいIIIを荒く曲げ、VIへ強く落とします。", 3],
+      ["bIII7m", "VImaj7", "tension", "外側の熱が、遠い光へ解決します。", 3],
+      ["iM7", "bV7altm", "altered", "暗い艶から、重力の外側へ飛びます。", 3],
+      ["bV7altm", "ivM7", "chromatic", "遠い濁りから、深いivの艶へ引き戻します。", 3],
+      ["VIIadd9", "VII7altm", "altered", "上昇の余白を濁らせ、次の着地を読ませにくくします。", 3],
+      ["VII7altm", "IIImaj7", "altered", "歪んだ上昇が、透明なIIIへ開きます。", 3],
+      ["i11", "i13susm", "groove", "暗い広がりを、答えを出さないグルーヴに変えます。", 4],
+      ["i13susm", "iv13susm", "groove", "保留したままivへ移り、暗いファンクの循環に入ります。", 4],
+      ["iv13susm", "bVII9m", "groove", "沈むファンクから、荒い裏口へ持ち上げます。", 4],
+      ["bVII9m", "i11", "groove", "bVII9から戻る、マイナー版バックドアです。", 4],
+      ["V7altm", "tritoneAltm", "altered", "正面の濁りを裏口へ反転させ、帰り道をさらに濃くします。", 4],
+      ["tritoneAltm", "i11", "chromatic", "半音上のaltから、広いiへ深く戻ります。", 4],
     ],
   },
 };
@@ -376,7 +473,8 @@ const state = {
 const el = {
   keySelect: document.querySelector("#keySelect"),
   modeButtons: [...document.querySelectorAll(".segment")],
-  adventureButtons: [...document.querySelectorAll(".adventure-segment")],
+  complexitySlider: document.querySelector("#complexitySlider"),
+  complexityLabel: document.querySelector("#complexityLabel"),
   currentChord: document.querySelector("#currentChord"),
   previousChordButton: document.querySelector("#previousChordButton"),
   detailTabButtons: [...document.querySelectorAll(".detail-tab")],
@@ -437,6 +535,15 @@ function nodeById(id) {
 
 function currentAdventure() {
   return ADVENTURES[state.adventure] || ADVENTURES.deep;
+}
+
+function adventureIndex(adventure) {
+  const index = COMPLEXITY_ORDER.indexOf(adventure);
+  return index >= 0 ? index : COMPLEXITY_ORDER.indexOf("deep");
+}
+
+function adventureFromIndex(index) {
+  return COMPLEXITY_ORDER[Math.max(0, Math.min(COMPLEXITY_ORDER.length - 1, Number(index) || 0))] || "deep";
 }
 
 function nodeLevel(node) {
@@ -506,15 +613,13 @@ function bindEvents() {
     });
   });
 
-  el.adventureButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      state.adventure = button.dataset.adventure;
-      if (!visibleNodeById(state.selectedId)) state.selectedId = mapData().centerRole;
-      state.selectionHistory = [];
-      state.selectedVoicing = 0;
-      render();
-      persist();
-    });
+  el.complexitySlider.addEventListener("input", () => {
+    state.adventure = adventureFromIndex(el.complexitySlider.value);
+    if (!visibleNodeById(state.selectedId)) state.selectedId = mapData().centerRole;
+    state.selectionHistory = [];
+    state.selectedVoicing = 0;
+    render();
+    persist();
   });
 
   el.addCurrentButton.addEventListener("click", () => {
@@ -598,9 +703,7 @@ function render() {
   el.modeButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.mode === state.mode);
   });
-  el.adventureButtons.forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.adventure === state.adventure);
-  });
+  renderComplexityControl();
   el.instrumentButtons.forEach((button) => {
     const isActive = button.dataset.instrument === state.instrument;
     button.classList.toggle("is-active", isActive);
@@ -615,6 +718,14 @@ function render() {
   renderProgression();
   renderSavedIdeas();
   renderMapNotes();
+}
+
+function renderComplexityControl() {
+  const index = adventureIndex(state.adventure);
+  const max = COMPLEXITY_ORDER.length - 1;
+  el.complexitySlider.value = String(index);
+  el.complexitySlider.style.setProperty("--complexity", `${(index / max) * 100}%`);
+  el.complexityLabel.textContent = currentAdventure().label;
 }
 
 function renderHistoryButton() {
@@ -1515,7 +1626,7 @@ function bassPassingToneMap(root, quality) {
     add(3, "blue", "メジャーに一瞬だけ影を入れる", 3);
     add(10, "b7", "ミクソリディアンっぽく外す", 7);
   }
-  if (["min", "m7", "m9", "m11", "mM7"].includes(quality)) {
+  if (["min", "m7", "m9", "m11", "mM7", "m6"].includes(quality)) {
     add(4, "M3", "マイナーに一瞬だけ明るさを混ぜる", 4);
     add(6, "b5", "暗いブルーノートとして使う", 3);
   }
@@ -1595,6 +1706,8 @@ function renderBassFretboard(voicing, root, quality) {
 }
 
 function makeVoicings(root, quality) {
+  const commonCandidates = commonOpenVoicings(root, quality);
+  const barreCandidates = standardBarreVoicings(root, quality);
   const practicalCandidates = practicalVoicings(root, quality);
   if (quality === "dim" || quality === "dim7") {
     const dimCandidates = [
@@ -1619,6 +1732,8 @@ function makeVoicings(root, quality) {
   const reharmCandidates = reharmVoicings(root, quality);
   const candidates = standardQuality
     ? [
+        ...commonCandidates,
+        ...barreCandidates,
         ...practicalCandidates,
         searchOpenVoicing(root, quality),
         cagedVoicing(root, quality, "E"),
@@ -1628,10 +1743,18 @@ function makeVoicings(root, quality) {
         ...highCandidates,
         ...reharmCandidates,
       ].filter(Boolean)
-    : [ ...practicalCandidates, searchOpenVoicing(root, quality), ...windowCandidates, ...highCandidates, ...reharmCandidates].filter(Boolean);
+    : [
+        ...commonCandidates,
+        ...barreCandidates,
+        ...practicalCandidates,
+        searchOpenVoicing(root, quality),
+        ...windowCandidates,
+        ...highCandidates,
+        ...reharmCandidates,
+      ].filter(Boolean);
 
   const unique = uniqueVoicings(candidates);
-  return unique.length ? unique.slice(0, 7) : [fallbackVoicing(root, quality)];
+  return unique.length ? unique.slice(0, 9) : [fallbackVoicing(root, quality)];
 }
 
 function practicalVoicings(root, quality) {
@@ -1682,6 +1805,119 @@ function makeVoicing(name, frets, description, extra = {}) {
   };
 }
 
+function commonOpenVoicings(root, quality) {
+  const shapes = {
+    maj: {
+      0: [
+        ["定番 C", [-1, 3, 2, 0, 1, 0], "いちばん使うCの開放フォーム。弾き語りでもバンドでもまず試したい形です。"],
+        ["CaddG", [-1, 3, 2, 0, 1, 3], "1弦3Fを足して、上が少し太く光る形です。"],
+      ],
+      2: [["定番 D", [-1, -1, 0, 2, 3, 2], "明るく抜けるDの開放フォーム。高音弦がきれいに鳴ります。"]],
+      4: [["定番 E", [0, 2, 2, 1, 0, 0], "6弦まで鳴らせるEの基本フォーム。ロックにもポップスにも強い形です。"]],
+      5: [["定番 F", [1, 3, 3, 2, 1, 1], "Fの基本バレー。難しければ6弦を親指、または上4本だけでもOKです。"]],
+      7: [
+        ["定番 G", [3, 2, 0, 0, 0, 3], "ギターらしいGの開放フォーム。低音と高音が大きく鳴ります。"],
+        ["G 4本指", [3, 2, 0, 0, 3, 3], "1、2弦を残して明るく太く鳴らす、現場でよく使うGです。"],
+      ],
+      9: [["定番 A", [-1, 0, 2, 2, 2, 0], "5弦ルートのA開放フォーム。明るくまとまりやすい形です。"]],
+    },
+    min: {
+      0: [["Cm A型", [-1, 3, 5, 5, 4, 3], "5弦ルートのCm。開放形がないキーでは、この形がまず実用的です。"]],
+      2: [["Dm 開放", [-1, -1, 0, 2, 3, 1], "小さく切ないDmの定番フォーム。高音側だけでも使いやすいです。"]],
+      4: [["Em 開放", [0, 2, 2, 0, 0, 0], "いちばん鳴らしやすいEm。広く暗い響きが出ます。"]],
+      6: [["F#m E型", [2, 4, 4, 2, 2, 2], "E型バレーのF#m。ポップスで頻出する実用形です。"]],
+      7: [["Gm E型", [3, 5, 5, 3, 3, 3], "E型バレーのGm。全弦でも上4本だけでも使えます。"]],
+      9: [["Am 開放", [-1, 0, 2, 2, 1, 0], "Aマイナーの基本フォーム。歌ものの切なさにすぐ使えます。"]],
+      11: [["Bm A型", [-1, 2, 4, 4, 3, 2], "5弦ルートのBm。まず覚えたいマイナーバレーです。"]],
+    },
+    "7": {
+      0: [["C7 開放", [-1, 3, 2, 3, 1, 0], "Cから少しブルージーに開く定番のC7です。"]],
+      2: [["D7 開放", [-1, -1, 0, 2, 1, 2], "次へ行きたくなるD7の定番フォーム。軽く刻みやすいです。"]],
+      4: [["E7 開放", [0, 2, 0, 1, 0, 0], "E7の開放フォーム。ブルースやドミナント感がすぐ出ます。"]],
+      7: [["G7 開放", [3, 2, 0, 0, 0, 1], "GからCへ戻りたくなる、超定番のG7です。"]],
+      9: [["A7 開放", [-1, 0, 2, 0, 2, 0], "A7の開放フォーム。DやDmへ行く前に使いやすい形です。"]],
+      11: [["B7 開放", [-1, 2, 1, 2, 0, 2], "Eへ強く戻れるB7。ギターらしい押さえ方です。"]],
+    },
+    m7: {
+      2: [["Dm7 開放", [-1, -1, 0, 2, 1, 1], "Dmより柔らかい定番フォーム。歌の後ろで邪魔になりにくいです。"]],
+      4: [["Em7 開放", [0, 2, 0, 0, 0, 0], "Emをさらに軽くした形。開放弦の余白が使えます。"]],
+      9: [["Am7 開放", [-1, 0, 2, 0, 1, 0], "Amより少し大人っぽい定番フォーム。多くの曲で置き換えられます。"]],
+      11: [["Bm7 簡易", [-1, 2, 0, 2, 0, 2], "バレーが重い時に使えるBm7。開放弦が混ざって軽く鳴ります。"]],
+    },
+    maj7: {
+      0: [["Cmaj7 開放", [-1, 3, 2, 0, 0, 0], "Cを少し透明にする定番フォーム。J-POPでもよく合います。"]],
+      2: [["Dmaj7 開放", [-1, -1, 0, 2, 2, 2], "高音がまとまったDmaj7。明るく都会的に鳴ります。"]],
+      4: [["Emaj7 開放", [0, 2, 1, 1, 0, 0], "Eの開放感を残したmaj7。少し甘く不思議に鳴ります。"]],
+      5: [["Fmaj7 開放寄り", [-1, -1, 3, 2, 1, 0], "Fをバレーせずに透明に鳴らす定番形。歌ものに便利です。"]],
+      7: [["Gmaj7 開放", [3, 2, 0, 0, 0, 2], "Gを柔らかく透明にする形。普通のGの代わりに使えます。"]],
+      9: [["Amaj7 開放", [-1, 0, 2, 1, 2, 0], "Aを都会的にする定番maj7。歌メロの下で使いやすいです。"]],
+    },
+    add9: {
+      0: [["Cadd9 開放", [-1, 3, 2, 0, 3, 0], "Cに9thを足した開放フォーム。明るい余韻が出ます。"]],
+      2: [["Dadd9 開放", [-1, -1, 0, 2, 3, 0], "Dに高いEを残す形。普通のDより少し浮きます。"]],
+      4: [["Eadd9 開放", [0, 2, 4, 1, 0, 0], "Eに9thを足す広い形。弾き語りで景色が広がります。"]],
+      7: [["Gadd9 開放", [3, 0, 0, 0, 0, 3], "Gの中にAを混ぜる、軽く広いフォームです。"]],
+      9: [["Aadd9 開放", [-1, 0, 2, 4, 2, 0], "Aを少し現代的にするadd9。響きを足したい時に便利です。"]],
+    },
+    sus4: {
+      2: [["Dsus4 開放", [-1, -1, 0, 2, 3, 3], "DからDへ戻すだけで動きが出る定番sus4です。"]],
+      4: [["Esus4 開放", [0, 2, 2, 2, 0, 0], "Eの答えを少し保留する定番フォームです。"]],
+      9: [["Asus4 開放", [-1, 0, 2, 2, 3, 0], "Aの前後で使いやすいsus4。ギターらしい動きが出ます。"]],
+    },
+    "7sus4": {
+      2: [["D7sus4 開放", [-1, -1, 0, 2, 1, 3], "D7の緊張を少し保留する形。サビ前にも便利です。"]],
+      4: [["E7sus4 開放", [0, 2, 0, 2, 0, 0], "E7へほどく前に使える、ロックにも合う形です。"]],
+      7: [["G7sus4 開放", [3, 3, 0, 0, 1, 1], "G7の戻りを焦らす形。短く入れると効きます。"]],
+      9: [["A7sus4 開放", [-1, 0, 2, 0, 3, 0], "A7へほどける定番sus4。カッティングにも使いやすいです。"]],
+    },
+    m9: {
+      4: [["Em9 開放", [0, 2, 0, 0, 0, 2], "Em7に9thを足した、開放弦の広い形です。"]],
+      9: [["Am9 開放寄り", [-1, 0, 5, 5, 0, 0], "Amの暗さを大きく広げる形。アルペジオで特に使えます。"]],
+    },
+  };
+  return (shapes[quality]?.[mod(root)] || [])
+    .map(([name, frets, description]) => makeVoicing(name, frets, description, { maxFret: 12 }))
+    .filter(Boolean);
+}
+
+function standardBarreVoicings(root, quality) {
+  const root6 = rootFretOnString(root, 0, 1);
+  const root5 = rootFretOnString(root, 1, 2);
+  const templates = {
+    maj: [
+      ["定番 E型バレー", [root6, root6 + 2, root6 + 2, root6 + 1, root6, root6], "6弦ルートの最重要バレー。まずこれで位置をつかめます。"],
+      ["定番 A型バレー", [-1, root5, root5 + 2, root5 + 2, root5 + 2, root5], "5弦ルートの最重要バレー。中域でまとまりやすい形です。"],
+    ],
+    min: [
+      ["定番 E型mバレー", [root6, root6 + 2, root6 + 2, root6, root6, root6], "6弦ルートのマイナーバレー。ロック、ポップスで頻出です。"],
+      ["定番 A型mバレー", [-1, root5, root5 + 2, root5 + 2, root5 + 1, root5], "5弦ルートのマイナーバレー。切なさを太く出せます。"],
+    ],
+    "7": [
+      ["定番 E型7バレー", [root6, root6 + 2, root6, root6 + 1, root6, root6], "6弦ルートの7th。次へ進む力をシンプルに出せます。"],
+      ["定番 A型7バレー", [-1, root5, root5 + 2, root5, root5 + 2, root5], "5弦ルートの7th。ブルースやサビ前にも使いやすいです。"],
+    ],
+    m7: [
+      ["定番 E型m7バレー", [root6, root6 + 2, root6, root6, root6, root6], "6弦ルートのm7。マイナーを軽く柔らかくできます。"],
+      ["定番 A型m7バレー", [-1, root5, root5 + 2, root5, root5 + 1, root5], "5弦ルートのm7。歌もの、R&Bでよく使う形です。"],
+    ],
+    maj7: [
+      ["定番 E型maj7", [root6, root6 + 2, root6 + 1, root6 + 1, root6, root6], "6弦ルートのmaj7。普通のメジャーより透明に響きます。"],
+      ["定番 A型maj7", [-1, root5, root5 + 2, root5 + 1, root5 + 2, root5], "5弦ルートのmaj7。中域で扱いやすい定番形です。"],
+    ],
+    sus4: [
+      ["定番 E型sus4", [root6, root6 + 2, root6 + 2, root6 + 2, root6, root6], "6弦ルートのsus4。メジャーへほどく動きに便利です。"],
+      ["定番 A型sus4", [-1, root5, root5 + 2, root5 + 2, root5 + 3, root5], "5弦ルートのsus4。高音側の保留感がはっきりします。"],
+    ],
+    "7sus4": [
+      ["定番 E型7sus4", [root6, root6 + 2, root6, root6 + 2, root6, root6], "6弦ルートの7sus4。戻りを焦らす時に使いやすいです。"],
+      ["定番 A型7sus4", [-1, root5, root5 + 2, root5, root5 + 3, root5], "5弦ルートの7sus4。カッティングにも合います。"],
+    ],
+  };
+  return (templates[quality] || [])
+    .map(([name, frets, description]) => makeVoicing(name, frets, description, { minFret: 1, maxFret: 16 }))
+    .filter(Boolean);
+}
+
 function shellVoicing6(rootFret, quality) {
   const shell = shellType(quality);
   if (!shell) return null;
@@ -1716,7 +1952,7 @@ function shellVoicing5(rootFret, quality) {
 
 function shellType(quality) {
   if (["maj", "maj7", "maj9", "add9", "add11", "sixNine", "6"].includes(quality)) return "maj";
-  if (["min", "m7", "m9", "m11", "mM7", "m7b5"].includes(quality)) return "min";
+  if (["min", "m7", "m9", "m11", "mM7", "m6", "m7b5"].includes(quality)) return "min";
   if (["7", "9", "13", "dom7b9", "dom7alt", "aug"].includes(quality)) return "dom";
   if (["sus4", "7sus4", "sus13"].includes(quality)) return "sus";
   return null;
@@ -1778,7 +2014,7 @@ function fragmentQuality(quality) {
   if (["7", "9", "13"].includes(quality)) return "9";
   if (["dom7b9", "dom7alt"].includes(quality)) return quality;
   if (["maj", "maj7", "add9", "sixNine", "6"].includes(quality)) return "maj9";
-  if (["min", "m7", "m9", "m11"].includes(quality)) return "m9";
+  if (["min", "m7", "m9", "m11", "m6"].includes(quality)) return "m9";
   return quality;
 }
 
@@ -2040,6 +2276,7 @@ function intervalsForQuality(quality) {
     dim7: [0, 3, 6, 9],
     aug: [0, 4, 8],
     mM7: [0, 3, 7, 11],
+    m6: [0, 3, 7, 9],
     "6": [0, 4, 7, 9],
     maj9: [0, 2, 4, 7, 11],
     m9: [0, 2, 3, 7, 10],
@@ -2060,16 +2297,16 @@ function renderFretboard(voicing) {
   const minFret = played.length ? Math.min(...played) : 0;
   const startFret = minFret > 4 ? minFret : 1;
   const rows = 5;
-  const stringX = [16, 36, 56, 76, 96, 116];
+  const stringX = [28, 48, 68, 88, 108, 128];
   const top = 34;
   const rowHeight = 26;
-  const width = 132;
+  const width = 146;
   const height = 174;
   const nutY = 28;
   const fretLines = Array.from({ length: rows + 1 }, (_, index) => {
     const y = top + index * rowHeight;
     const strokeWidth = startFret === 1 && index === 0 ? 5 : 1.5;
-    return `<line x1="16" y1="${y}" x2="116" y2="${y}" stroke="rgba(233,239,231,.7)" stroke-width="${strokeWidth}"></line>`;
+    return `<line x1="${stringX[0]}" y1="${y}" x2="${stringX[stringX.length - 1]}" y2="${y}" stroke="rgba(233,239,231,.7)" stroke-width="${strokeWidth}"></line>`;
   }).join("");
   const strings = stringX
     .map((x, index) => {
@@ -2092,7 +2329,7 @@ function renderFretboard(voicing) {
       return `<circle cx="${x}" cy="${y}" r="8.5" fill="#82dd55"></circle>`;
     })
     .join("");
-  const label = startFret > 1 ? `<text x="5" y="${top + rowHeight / 2 + 4}" class="fret-label">${startFret}</text>` : "";
+  const label = startFret > 1 ? `<text x="12" y="${top + rowHeight / 2 + 4}" class="fret-label">${startFret}</text>` : "";
   const stringLabels = STRING_NAMES.map((name, index) => `<text x="${stringX[index]}" y="${height - 6}" class="string-label">${name}</text>`).join("");
 
   return `
@@ -2102,7 +2339,7 @@ function renderFretboard(voicing) {
         .fret-label{fill:#82dd55;font-size:12px;font-weight:800}
       </style>
       <rect x="1" y="1" width="${width - 2}" height="${height - 2}" rx="8" fill="rgba(255,255,255,.035)" stroke="rgba(222,236,224,.16)"></rect>
-      ${startFret === 1 ? "" : `<line x1="16" y1="${nutY}" x2="116" y2="${nutY}" stroke="rgba(233,239,231,.25)" stroke-width="1"></line>`}
+      ${startFret === 1 ? "" : `<line x1="${stringX[0]}" y1="${nutY}" x2="${stringX[stringX.length - 1]}" y2="${nutY}" stroke="rgba(233,239,231,.25)" stroke-width="1"></line>`}
       ${strings}
       ${fretLines}
       ${markers}
@@ -2192,7 +2429,7 @@ function renderSavedIdeas() {
   el.savedIdeas.innerHTML = state.ideas
     .map((idea) => {
       const modeLabel = idea.mode === "major" ? "メジャー系" : "マイナー系";
-      const adventureLabel = ADVENTURES[idea.adventure]?.label || "J-POP深め";
+      const adventureLabel = ADVENTURES[idea.adventure]?.label || "J-POP";
       return `
         <article class="saved-idea">
           <strong>${escapeHTML(idea.key)} / ${modeLabel} / ${adventureLabel}: ${idea.chords.map(escapeHTML).join(" → ")}</strong>
