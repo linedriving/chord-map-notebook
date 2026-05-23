@@ -516,6 +516,11 @@ input:focus {
   color: rgba(233, 239, 231, 0.78);
 }
 
+.midi-live-card strong:empty,
+.midi-live-card p:empty {
+  display: none;
+}
+
 #chordMap {
   display: block;
   width: 100%;

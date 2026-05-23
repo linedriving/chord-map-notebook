@@ -818,7 +818,7 @@ function renderMidiAvailability() {
     return;
   }
   el.midiConnectButton.disabled = false;
-  el.midiStatus.textContent = "接続を押すとMIDI入力を解析します。";
+  el.midiStatus.textContent = "未接続";
 }
 
 async function connectMidi() {
@@ -827,7 +827,7 @@ async function connectMidi() {
     return;
   }
   el.midiConnectButton.disabled = true;
-  el.midiStatus.textContent = "MIDI入力を探しています...";
+  el.midiStatus.textContent = "接続中...";
   try {
     midiState.access = await navigator.requestMIDIAccess({ sysex: false });
     midiState.access.onstatechange = refreshMidiInputs;
@@ -850,13 +850,12 @@ function refreshMidiInputs() {
   el.midiConnectButton.disabled = false;
   el.midiConnectButton.textContent = inputs.length ? "再接続" : "接続";
   if (!inputs.length) {
-    el.midiChordDisplay.textContent = "MIDIなし";
-    el.midiNoteDisplay.textContent = "入力デバイスが見つかりません。";
-    el.midiStatus.textContent = "CoreMIDIで見える機器を接続してください。";
+    el.midiChordDisplay.textContent = "";
+    el.midiNoteDisplay.textContent = "";
+    el.midiStatus.textContent = "未接続";
     return;
   }
-  const names = inputs.map((input) => input.name || "MIDI入力").join(" / ");
-  el.midiStatus.textContent = `入力: ${names}`;
+  el.midiStatus.textContent = "接続済み";
 }
 
 function handleMidiMessage(event) {
@@ -882,8 +881,8 @@ function renderMidiAnalysis() {
   const notes = activeMidiNotes();
   if (!notes.length) {
     midiState.latestAnalysis = null;
-    el.midiChordDisplay.textContent = midiState.access ? "入力待ち" : "MIDI待機";
-    el.midiNoteDisplay.textContent = "コードを弾くとここに表示されます。";
+    el.midiChordDisplay.textContent = "";
+    el.midiNoteDisplay.textContent = "";
     return;
   }
   const analysis = analyzeMidiChord(notes);
