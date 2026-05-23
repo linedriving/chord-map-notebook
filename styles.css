@@ -66,15 +66,15 @@ button:disabled {
 .app-shell {
   width: min(1480px, 100%);
   margin: 0 auto;
-  padding: 20px;
+  padding: 12px 16px;
 }
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 16px 18px;
+  gap: 16px;
+  padding: 11px 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(10, 12, 13, 0.76);
@@ -91,8 +91,8 @@ button:disabled {
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   border-radius: 8px;
   border: 1px solid rgba(130, 221, 85, 0.44);
   background: rgba(130, 221, 85, 0.1);
@@ -122,7 +122,7 @@ h1 {
 
 .brand p {
   margin-top: 3px;
-  font-size: 0.92rem;
+  font-size: 0.84rem;
 }
 
 .controls {
@@ -139,7 +139,8 @@ h1 {
 }
 
 .control span,
-.segmented legend {
+.segmented legend,
+.direct-chord-control legend {
   font-size: 0.78rem;
 }
 
@@ -155,7 +156,7 @@ input {
 
 select {
   min-width: 118px;
-  min-height: 42px;
+  min-height: 38px;
   padding: 0 34px 0 12px;
 }
 
@@ -214,12 +215,47 @@ input:focus {
 .complexity-control {
   display: grid;
   gap: 7px;
-  min-width: 280px;
+  min-width: 258px;
   margin: 0;
   padding: 8px 10px 9px;
   border: 1px solid var(--line-strong);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
+}
+
+.direct-chord-control {
+  display: grid;
+  gap: 6px;
+  min-width: 318px;
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.direct-chord-control legend {
+  padding: 0 4px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.direct-chord-row {
+  display: grid;
+  grid-template-columns: 78px 92px 1fr;
+  gap: 6px;
+  align-items: center;
+}
+
+.direct-chord-row select {
+  min-width: 0;
+  min-height: 38px;
+  padding-inline: 10px 28px;
+}
+
+.direct-chord-row button {
+  min-height: 38px;
+  white-space: nowrap;
 }
 
 .complexity-control legend {
@@ -313,9 +349,11 @@ input:focus {
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(330px, 400px);
-  gap: 18px;
-  margin-top: 18px;
-  align-items: start;
+  gap: 14px;
+  height: calc(100vh - 104px);
+  min-height: 700px;
+  margin-top: 12px;
+  align-items: stretch;
 }
 
 .map-panel,
@@ -327,6 +365,8 @@ input:focus {
 }
 
 .map-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   min-width: 0;
   overflow: hidden;
 }
@@ -334,9 +374,10 @@ input:focus {
 .side-panel {
   display: grid;
   gap: 1px;
-  overflow: hidden;
+  max-height: calc(100vh - 104px);
+  overflow-y: auto;
   position: sticky;
-  top: 18px;
+  top: 12px;
 }
 
 .map-toolbar {
@@ -344,7 +385,7 @@ input:focus {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.035);
 }
@@ -358,7 +399,7 @@ input:focus {
 
 .current-readout strong {
   color: var(--green);
-  font-size: clamp(1.7rem, 3vw, 3rem);
+  font-size: clamp(1.55rem, 2.4vw, 2.5rem);
   line-height: 1;
 }
 
@@ -408,17 +449,78 @@ input:focus {
 
 .map-stage {
   position: relative;
-  min-height: 640px;
+  min-height: 0;
   background:
     radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.055), transparent 22rem),
     linear-gradient(135deg, rgba(255, 255, 255, 0.022), rgba(0, 0, 0, 0.12));
   overflow: hidden;
 }
 
+.midi-live-card {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  z-index: 3;
+  width: min(260px, calc(100% - 28px));
+  padding: 12px;
+  border: 1px solid rgba(130, 221, 85, 0.36);
+  border-radius: 8px;
+  background: rgba(8, 14, 12, 0.86);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(12px);
+}
+
+.midi-live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.midi-live-head span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.midi-live-head button {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(130, 221, 85, 0.35);
+  border-radius: 8px;
+  background: rgba(130, 221, 85, 0.12);
+  color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.midi-live-card strong {
+  display: block;
+  color: var(--green);
+  font-size: clamp(1.35rem, 2.2vw, 2.2rem);
+  line-height: 1.05;
+  word-break: break-word;
+}
+
+.midi-live-card p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.midi-live-card p:last-child {
+  color: rgba(233, 239, 231, 0.78);
+}
+
 #chordMap {
   display: block;
   width: 100%;
-  min-height: 640px;
+  height: 100%;
+  min-height: 0;
 }
 
 .orbit {
@@ -674,12 +776,12 @@ input:focus {
 .legend {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 8px 12px;
   flex-wrap: wrap;
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   background: rgba(255, 255, 255, 0.027);
 }
 
@@ -757,7 +859,7 @@ input:focus {
 }
 
 .progression-area {
-  padding: 15px 16px 16px;
+  padding: 10px 12px 12px;
 }
 
 .progression-head,
@@ -792,15 +894,15 @@ input:focus {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  min-height: 42px;
-  padding: 12px 0;
+  min-height: 36px;
+  padding: 8px 0;
 }
 
 .path-chip {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 36px;
+  min-height: 32px;
   padding: 0 10px;
   border: 1px solid rgba(130, 221, 85, 0.34);
   border-radius: 8px;
@@ -820,12 +922,12 @@ input:focus {
 textarea {
   width: 100%;
   resize: vertical;
-  min-height: 82px;
-  padding: 12px;
+  min-height: 60px;
+  padding: 10px;
 }
 
 .detail-section {
-  padding: 16px;
+  padding: 14px;
   background: var(--panel-strong);
 }
 
@@ -835,12 +937,12 @@ textarea {
 
 .selected-card h2 {
   color: var(--green);
-  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  font-size: clamp(1.7rem, 2.6vw, 2.4rem);
 }
 
 .selected-card p {
-  margin-top: 10px;
-  line-height: 1.7;
+  margin-top: 8px;
+  line-height: 1.6;
 }
 
 .suggestions {
@@ -1293,10 +1395,14 @@ textarea {
 @media (max-width: 1080px) {
   .workspace {
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
   }
 
   .side-panel {
     position: static;
+    max-height: none;
+    overflow: visible;
   }
 
   .map-stage {
@@ -1327,9 +1433,18 @@ textarea {
   .control,
   .controls select,
   .segmented,
+  .direct-chord-control,
   .complexity-control,
   .map-actions button {
     width: 100%;
+  }
+
+  .direct-chord-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .direct-chord-row button {
+    grid-column: 1 / -1;
   }
 
   .segment {
@@ -1340,6 +1455,13 @@ textarea {
   .map-stage {
     min-height: 460px;
     overflow: auto;
+  }
+
+  .midi-live-card {
+    left: 10px;
+    top: 10px;
+    width: min(230px, calc(100% - 20px));
+    padding: 10px;
   }
 
   #chordMap {

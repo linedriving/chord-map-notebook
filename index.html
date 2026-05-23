@@ -27,6 +27,14 @@
         </div>
 
         <div class="controls">
+          <fieldset class="direct-chord-control" aria-label="コードを直接指定">
+            <legend>指定コード</legend>
+            <div class="direct-chord-row">
+              <select id="directRootSelect" aria-label="指定コードのルート"></select>
+              <select id="directQualitySelect" aria-label="指定コードの種類"></select>
+              <button type="button" id="directChordButton" class="ghost-button">このコードから</button>
+            </div>
+          </fieldset>
           <label class="control">
             <span>キー</span>
             <select id="keySelect"></select>
@@ -76,6 +84,15 @@
               <g id="edgeLayer"></g>
               <g id="nodeLayer"></g>
             </svg>
+            <section class="midi-live-card" aria-label="MIDI入力コード解析">
+              <div class="midi-live-head">
+                <span>MIDI Input</span>
+                <button type="button" id="midiConnectButton">接続</button>
+              </div>
+              <strong id="midiChordDisplay">MIDI待機</strong>
+              <p id="midiNoteDisplay">鍵盤やMIDIギターを接続してください。</p>
+              <p id="midiStatus">Web MIDI対応ブラウザで使用できます。</p>
+            </section>
             <div id="mapNotes" class="map-notes" aria-label="地図メモ"></div>
           </div>
 

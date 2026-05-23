@@ -46,6 +46,31 @@ const ADVENTURES = {
 
 const COMPLEXITY_ORDER = ["classic", "deep", "jazz", "wild"];
 
+const DIRECT_CHORD_TYPES = [
+  { label: "maj", mode: "major", nodeId: "I" },
+  { label: "m", mode: "minor", nodeId: "i" },
+  { label: "m7", mode: "minor", nodeId: "i7" },
+  { label: "maj7", mode: "major", nodeId: "Imaj7" },
+  { label: "add9", mode: "major", nodeId: "Iadd9" },
+  { label: "6/9", mode: "major", nodeId: "I6_9" },
+  { label: "7", mode: "major", nodeId: "I7" },
+  { label: "9", mode: "major", nodeId: "V9" },
+  { label: "13", mode: "major", nodeId: "I13" },
+  { label: "m9", mode: "minor", nodeId: "i9" },
+  { label: "m11", mode: "minor", nodeId: "i11" },
+  { label: "mM7", mode: "minor", nodeId: "iM7" },
+  { label: "7(b9)", mode: "minor", nodeId: "V7b9" },
+  { label: "dim7", mode: "major", nodeId: "sharpIdim7" },
+];
+
+const MIDI_CHORD_PATTERNS = buildMidiChordPatterns();
+
+const midiState = {
+  access: null,
+  activeNotes: new Map(),
+  latestAnalysis: null,
+};
+
 const QUALITY_LABELS = {
   maj: "",
   min: "m",
@@ -472,6 +497,13 @@ const state = {
 
 const el = {
   keySelect: document.querySelector("#keySelect"),
+  directRootSelect: document.querySelector("#directRootSelect"),
+  directQualitySelect: document.querySelector("#directQualitySelect"),
+  directChordButton: document.querySelector("#directChordButton"),
+  midiConnectButton: document.querySelector("#midiConnectButton"),
+  midiChordDisplay: document.querySelector("#midiChordDisplay"),
+  midiNoteDisplay: document.querySelector("#midiNoteDisplay"),
+  midiStatus: document.querySelector("#midiStatus"),
   modeButtons: [...document.querySelectorAll(".segment")],
   complexitySlider: document.querySelector("#complexitySlider"),
   complexityLabel: document.querySelector("#complexityLabel"),
@@ -510,6 +542,10 @@ function mod(value, base = 12) {
 
 function noteName(value) {
   return NOTE_LABELS[mod(value)];
+}
+
+function midiNoteName(noteNumber) {
+  return `${noteName(noteNumber)}${Math.floor(noteNumber / 12) - 1}`;
 }
 
 function rootValue() {
@@ -587,6 +623,8 @@ function init() {
   document.body.classList.toggle("is-ios", IS_IOS);
   if (IS_IOS) el.downloadMidiButton.hidden = true;
   renderKeySelect();
+  renderDirectChordSelects();
+  renderMidiAvailability();
   render();
   bindEvents();
 }
@@ -621,6 +659,14 @@ function bindEvents() {
     render();
     persist();
   });
+
+  el.directChordButton.addEventListener("click", startFromDirectChord);
+  [el.directRootSelect, el.directQualitySelect].forEach((select) => {
+    select.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") startFromDirectChord();
+    });
+  });
+  el.midiConnectButton.addEventListener("click", connectMidi);
 
   el.addCurrentButton.addEventListener("click", () => {
     addToProgression(selectedNode());
@@ -697,9 +743,15 @@ function renderKeySelect() {
   el.keySelect.value = state.key;
 }
 
+function renderDirectChordSelects() {
+  el.directRootSelect.innerHTML = KEYS.map((key) => `<option value="${key}">${key}</option>`).join("");
+  el.directQualitySelect.innerHTML = DIRECT_CHORD_TYPES.map((type) => `<option value="${type.label}">${type.label}</option>`).join("");
+}
+
 function render() {
   if (!visibleNodeById(state.selectedId)) state.selectedId = mapData().centerRole;
   el.keySelect.value = state.key;
+  syncDirectChordControl();
   el.modeButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.mode === state.mode);
   });
@@ -720,12 +772,263 @@ function render() {
   renderMapNotes();
 }
 
+function syncDirectChordControl() {
+  const node = selectedNode();
+  el.directRootSelect.value = noteName(rootValue() + node.offset);
+  const matchingType = DIRECT_CHORD_TYPES.find((type) => type.mode === state.mode && type.nodeId === node.id);
+  if (matchingType) el.directQualitySelect.value = matchingType.label;
+}
+
 function renderComplexityControl() {
   const index = adventureIndex(state.adventure);
   const max = COMPLEXITY_ORDER.length - 1;
   el.complexitySlider.value = String(index);
   el.complexitySlider.style.setProperty("--complexity", `${(index / max) * 100}%`);
   el.complexityLabel.textContent = currentAdventure().label;
+}
+
+function startFromDirectChord() {
+  const root = NOTE_VALUES[el.directRootSelect.value];
+  const type = DIRECT_CHORD_TYPES.find((item) => item.label === el.directQualitySelect.value) || DIRECT_CHORD_TYPES[0];
+  const node = MAPS[type.mode].nodes.find((item) => item.id === type.nodeId);
+  if (!node) return;
+
+  state.mode = type.mode;
+  state.key = noteName(root - node.offset);
+  state.selectedId = node.id;
+  state.selectionHistory = [];
+  state.selectedVoicing = 0;
+  ensureAdventureForLevel(nodeLevel(node));
+  render();
+  persist();
+}
+
+function ensureAdventureForLevel(level) {
+  if (currentAdventure().levels.includes(level)) return;
+  const nextAdventure = COMPLEXITY_ORDER.find((adventure) => ADVENTURES[adventure].levels.includes(level));
+  if (nextAdventure) state.adventure = nextAdventure;
+}
+
+function renderMidiAvailability() {
+  if (!("requestMIDIAccess" in navigator)) {
+    el.midiConnectButton.disabled = true;
+    el.midiChordDisplay.textContent = "未対応";
+    el.midiNoteDisplay.textContent = "このブラウザではMIDI入力を読めません。";
+    el.midiStatus.textContent = "MacではChrome/Edge系ブラウザで試してください。";
+    return;
+  }
+  el.midiConnectButton.disabled = false;
+  el.midiStatus.textContent = "接続を押すとMIDI入力を解析します。";
+}
+
+async function connectMidi() {
+  if (!("requestMIDIAccess" in navigator)) {
+    renderMidiAvailability();
+    return;
+  }
+  el.midiConnectButton.disabled = true;
+  el.midiStatus.textContent = "MIDI入力を探しています...";
+  try {
+    midiState.access = await navigator.requestMIDIAccess({ sysex: false });
+    midiState.access.onstatechange = refreshMidiInputs;
+    refreshMidiInputs();
+    renderMidiAnalysis();
+  } catch {
+    el.midiConnectButton.disabled = false;
+    el.midiChordDisplay.textContent = "接続失敗";
+    el.midiNoteDisplay.textContent = "ブラウザまたはOS側でMIDIアクセスが許可されませんでした。";
+    el.midiStatus.textContent = "Chrome/EdgeでHTTPSまたはlocalhostから開くと安定します。";
+  }
+}
+
+function refreshMidiInputs() {
+  if (!midiState.access) return;
+  const inputs = [...midiState.access.inputs.values()];
+  inputs.forEach((input) => {
+    input.onmidimessage = handleMidiMessage;
+  });
+  el.midiConnectButton.disabled = false;
+  el.midiConnectButton.textContent = inputs.length ? "再接続" : "接続";
+  if (!inputs.length) {
+    el.midiChordDisplay.textContent = "MIDIなし";
+    el.midiNoteDisplay.textContent = "入力デバイスが見つかりません。";
+    el.midiStatus.textContent = "CoreMIDIで見える機器を接続してください。";
+    return;
+  }
+  const names = inputs.map((input) => input.name || "MIDI入力").join(" / ");
+  el.midiStatus.textContent = `入力: ${names}`;
+}
+
+function handleMidiMessage(event) {
+  const [status, note, velocity = 0] = event.data;
+  const command = status & 0xf0;
+  if (command === 0x90 && velocity > 0) {
+    midiState.activeNotes.set(note, (midiState.activeNotes.get(note) || 0) + 1);
+  } else if (command === 0x80 || (command === 0x90 && velocity === 0)) {
+    const count = midiState.activeNotes.get(note) || 0;
+    if (count <= 1) midiState.activeNotes.delete(note);
+    else midiState.activeNotes.set(note, count - 1);
+  } else {
+    return;
+  }
+  renderMidiAnalysis();
+}
+
+function activeMidiNotes() {
+  return [...midiState.activeNotes.keys()].sort((a, b) => a - b);
+}
+
+function renderMidiAnalysis() {
+  const notes = activeMidiNotes();
+  if (!notes.length) {
+    midiState.latestAnalysis = null;
+    el.midiChordDisplay.textContent = midiState.access ? "入力待ち" : "MIDI待機";
+    el.midiNoteDisplay.textContent = "コードを弾くとここに表示されます。";
+    return;
+  }
+  const analysis = analyzeMidiChord(notes);
+  midiState.latestAnalysis = analysis;
+  el.midiChordDisplay.textContent = analysis.name;
+  el.midiNoteDisplay.textContent = notes.map(midiNoteName).join(" / ");
+}
+
+function analyzeMidiChord(notes) {
+  const pcs = [...new Set(notes.map((note) => mod(note)))];
+  const bassPc = mod(notes[0]);
+  if (pcs.length === 1) {
+    return { name: `${noteName(pcs[0])} 単音`, root: pcs[0], quality: "single", score: 0 };
+  }
+
+  const candidates = [];
+  for (let root = 0; root < 12; root += 1) {
+    const intervals = pcs.map((pc) => mod(pc - root)).sort((a, b) => a - b);
+    const intervalSet = new Set(intervals);
+    for (const pattern of MIDI_CHORD_PATTERNS) {
+      if (!pattern.intervals.every((interval) => intervalSet.has(interval))) continue;
+      const extras = intervals.filter((interval) => !pattern.intervalSet.has(interval));
+      if (extras.length > pattern.maxExtras) continue;
+      const bassBonus = root === bassPc ? 18 : 0;
+      const rootBonus = intervalSet.has(0) ? 12 : -20;
+      const densityBonus = pattern.intervals.length * 2;
+      const score = 120 + bassBonus + rootBonus + densityBonus - extras.length * 13 - pattern.priority - pattern.omitPenalty;
+      candidates.push({
+        name: `${noteName(root)}${pattern.suffix}`,
+        root,
+        pattern,
+        score,
+        extraCount: extras.length,
+      });
+    }
+  }
+
+  candidates.sort((a, b) => b.score - a.score || a.extraCount - b.extraCount || a.pattern.priority - b.pattern.priority);
+  if (candidates[0]) return candidates[0];
+  return {
+    name: `${noteName(bassPc)}?`,
+    root: bassPc,
+    quality: "unknown",
+    score: 0,
+  };
+}
+
+function buildMidiChordPatterns() {
+  const defs = [
+    ["", [0, 4, 7], 10, 1],
+    ["m", [0, 3, 7], 10, 1],
+    ["5", [0, 7], 18, 0],
+    ["sus2", [0, 2, 7], 14, 1],
+    ["sus4", [0, 5, 7], 14, 1],
+    ["add2", [0, 2, 4, 7], 12, 1],
+    ["add4", [0, 4, 5, 7], 13, 1],
+    ["madd2", [0, 2, 3, 7], 12, 1],
+    ["madd4", [0, 3, 5, 7], 13, 1],
+    ["dim", [0, 3, 6], 12, 1],
+    ["dim7", [0, 3, 6, 9], 10, 1],
+    ["aug", [0, 4, 8], 12, 1],
+    ["6", [0, 4, 7, 9], 11, 1],
+    ["6/9", [0, 2, 4, 7, 9], 8, 1],
+    ["M7", [0, 4, 7, 11], 8, 1],
+    ["M7#5", [0, 4, 8, 11], 9, 1],
+    ["M7#9", [0, 3, 4, 7, 11], 15, 1],
+    ["M7#11", [0, 4, 6, 7, 11], 9, 1],
+    ["M9", [0, 2, 4, 7, 11], 7, 1],
+    ["M11", [0, 2, 4, 5, 7, 11], 13, 1],
+    ["M13", [0, 2, 4, 7, 9, 11], 8, 1],
+    ["M13#11", [0, 2, 4, 6, 7, 9, 11], 7, 1],
+    ["m6", [0, 3, 7, 9], 10, 1],
+    ["m6/9", [0, 2, 3, 7, 9], 8, 1],
+    ["m7", [0, 3, 7, 10], 7, 1],
+    ["m7b5", [0, 3, 6, 10], 8, 1],
+    ["m7b6", [0, 3, 7, 8, 10], 9, 1],
+    ["m9", [0, 2, 3, 7, 10], 7, 1],
+    ["m9b6", [0, 2, 3, 7, 8, 10], 8, 1],
+    ["m11", [0, 2, 3, 5, 7, 10], 7, 1],
+    ["m13", [0, 2, 3, 5, 7, 9, 10], 8, 1],
+    ["mb6", [0, 3, 7, 8], 15, 1],
+    ["m#5", [0, 3, 8], 16, 1],
+    ["mM7", [0, 3, 7, 11], 10, 1],
+    ["mM9", [0, 2, 3, 7, 11], 11, 1],
+    ["mM11", [0, 2, 3, 5, 7, 11], 12, 1],
+    ["mM13", [0, 2, 3, 5, 7, 9, 11], 13, 1],
+    ["7", [0, 4, 7, 10], 7, 1],
+    ["7alt", [0, 1, 3, 4, 6, 8, 10], 7, 2],
+    ["7b9", [0, 1, 4, 7, 10], 7, 1],
+    ["7#9", [0, 3, 4, 7, 10], 7, 1],
+    ["7#11", [0, 4, 6, 7, 10], 8, 1],
+    ["7b5", [0, 4, 6, 10], 8, 1],
+    ["7#5", [0, 4, 8, 10], 8, 1],
+    ["7b13", [0, 4, 7, 8, 10], 10, 1],
+    ["7#9#11", [0, 3, 4, 6, 7, 10], 8, 1],
+    ["7#9b5", [0, 3, 4, 6, 10], 8, 1],
+    ["7#9#5", [0, 3, 4, 8, 10], 8, 1],
+    ["7b9#11", [0, 1, 4, 6, 7, 10], 8, 1],
+    ["7b9b5", [0, 1, 4, 6, 10], 8, 1],
+    ["7b9#9", [0, 1, 3, 4, 7, 10], 9, 1],
+    ["7b9b13", [0, 1, 4, 7, 8, 10], 8, 1],
+    ["7b9#5", [0, 1, 4, 8, 10], 8, 1],
+    ["7add13", [0, 4, 7, 9, 10], 9, 1],
+    ["9", [0, 2, 4, 7, 10], 6, 1],
+    ["9#11", [0, 2, 4, 6, 7, 10], 7, 1],
+    ["9b5", [0, 2, 4, 6, 10], 8, 1],
+    ["9#5", [0, 2, 4, 8, 10], 8, 1],
+    ["13", [0, 2, 4, 7, 9, 10], 6, 1],
+    ["13#11", [0, 2, 4, 6, 7, 9, 10], 6, 1],
+    ["13#9", [0, 2, 3, 4, 7, 9, 10], 8, 1],
+    ["7sus4", [0, 5, 7, 10], 8, 1],
+    ["7sus4b9", [0, 1, 5, 7, 10], 8, 1],
+    ["7sus4b9b13", [0, 1, 5, 8, 10], 8, 1],
+    ["7sus4add3", [0, 4, 5, 7, 10], 10, 1],
+    ["9sus4", [0, 2, 5, 7, 10], 7, 1],
+    ["13sus4", [0, 2, 5, 7, 9, 10], 7, 1],
+    ["13sus4add3", [0, 2, 4, 5, 7, 9, 10], 9, 1],
+  ];
+
+  const patterns = [];
+  defs.forEach(([suffix, intervals, priority, maxExtras]) => {
+    const normalized = [...new Set(intervals.map((interval) => mod(interval)))].sort((a, b) => a - b);
+    patterns.push(makeMidiPattern(suffix, normalized, priority, maxExtras, 0));
+    if (normalized.includes(7) && normalized.length > 3 && suffix !== "5") {
+      patterns.push(makeMidiPattern(suffix, normalized.filter((interval) => interval !== 7), priority + 3, maxExtras, 3));
+    }
+    if ((suffix.includes("13") || suffix.includes("11")) && normalized.includes(2)) {
+      patterns.push(makeMidiPattern(suffix, normalized.filter((interval) => interval !== 2), priority + 4, maxExtras, 4));
+      if (normalized.includes(7)) {
+        patterns.push(makeMidiPattern(suffix, normalized.filter((interval) => interval !== 2 && interval !== 7), priority + 6, maxExtras, 6));
+      }
+    }
+  });
+  return patterns;
+}
+
+function makeMidiPattern(suffix, intervals, priority, maxExtras, omitPenalty) {
+  return {
+    suffix,
+    intervals,
+    intervalSet: new Set(intervals),
+    priority,
+    maxExtras,
+    omitPenalty,
+  };
 }
 
 function renderHistoryButton() {
